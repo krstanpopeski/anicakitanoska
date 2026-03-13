@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anica Kitanoska — Mosaic & Painting Artist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans:  ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            stone: {
+              50:  '#fafaf9',
+              100: '#f5f5f4',
+              200: '#e7e5e4',
+              300: '#d6d3d1',
+              400: '#a8a29e',
+              500: '#78716c',
+              600: '#57534e',
+              700: '#44403c',
+              800: '#292524',
+              900: '#1c1917',
+            },
+          },
+          letterSpacing: {
+            widest2: '0.25em',
+            widest3: '0.35em',
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+
+    /* Slightly larger baseline typography across the site */
+    body { font-size: 17px; }
+    .text-xs { font-size: 0.84rem !important; line-height: 1.3rem !important; }
+    .text-sm { font-size: 0.96rem !important; line-height: 1.45rem !important; }
+
+    /* ── Navbar scroll effect ── */
+    #navbar { transition: background 0.4s, box-shadow 0.4s; }
+    #navbar.scrolled { background: rgba(255,255,255,0.97); box-shadow: 0 1px 24px rgba(0,0,0,0.06); }
+
+    /* ── Hero overlay gradient ── */
+    .hero-overlay {
+      background: linear-gradient(to bottom,
+        rgba(0,0,0,0.25) 0%,
+        rgba(0,0,0,0.45) 60%,
+        rgba(0,0,0,0.65) 100%);
+    }
+
+    /* ── Gallery lightbox ── */
+    #lightbox { display: none; }
+    #lightbox.open { display: flex; }
+
+    /* ── Fade-in on scroll ── */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── Custom underline link ── */
+    .nav-link {
+      position: relative;
+      padding-bottom: 2px;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: 0;
+      width: 0; height: 1px;
+      background: currentColor;
+      transition: width 0.3s;
+    }
+    .nav-link:hover::after { width: 100%; }
+
+    /* ── Work grid hover ── */
+    .work-card .overlay {
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .work-card:hover .overlay { opacity: 1; }
+
+    /* ── Exhibition list item ── */
+    .exh-item { border-bottom: 1px solid #e7e5e4; }
+    .exh-item:last-child { border-bottom: none; }
+
+    /* ── Mobile menu transition ── */
+    #mobile-menu { transition: max-height 0.35s ease, opacity 0.35s ease; max-height: 0; opacity: 0; overflow: hidden; }
+    #mobile-menu.open { max-height: 400px; opacity: 1; }
+
+    .signature-logo-dark { filter: invert(1) brightness(1.1); }
+    .signature-logo-light { opacity: 0.92; }
+
+    /* Improve modal text contrast on dark backdrop */
+    #lightbox .text-stone-500 { color: #d6d3d1 !important; }
+    #lightbox .text-stone-400 { color: #e7e5e4 !important; }
+    #lightbox .text-stone-300 { color: #f5f5f4 !important; }
+  </style>
+</head>
+<body class="bg-white font-sans text-stone-800 antialiased">
+
+<!-- ══════════════════════════════════════════
+     NAVIGATION
+══════════════════════════════════════════ -->
+<header id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-transparent">
+  <nav class="max-w-7xl mx-auto px-6 lg:px-10 h-16 md:h-20 flex items-center justify-between">
+
+    <!-- Logo / Name -->
+    <a href="#home" class="flex items-center gap-3 text-white hover:opacity-80 transition-opacity" id="nav-brand">
+      <img src="images/logo/logo-sino.png" alt="Anica Kitanoska monogram" class="w-8 h-8 object-contain signature-logo-dark" />
+      <span class="font-serif text-base md:text-lg tracking-widest2 uppercase">Anica Kitanoska</span>
+    </a>
+
+    <!-- Desktop links -->
+    <ul class="hidden md:flex items-center gap-8 lg:gap-10">
+      <li><a href="#works"       class="nav-link font-sans text-xs tracking-widest2 uppercase text-white hover:text-stone-200 transition-colors" id="nl-works">Works</a></li>
+      <li><a href="#exhibitions" class="nav-link font-sans text-xs tracking-widest2 uppercase text-white hover:text-stone-200 transition-colors" id="nl-exhibitions">Exhibitions</a></li>
+      <li><a href="#about"       class="nav-link font-sans text-xs tracking-widest2 uppercase text-white hover:text-stone-200 transition-colors" id="nl-about">About</a></li>
+      <li><a href="#contact"     class="nav-link font-sans text-xs tracking-widest2 uppercase text-white hover:text-stone-200 transition-colors" id="nl-contact">Contact</a></li>
+    </ul>
+
+    <!-- Mobile hamburger -->
+    <button id="menu-btn" class="md:hidden text-white focus:outline-none" aria-label="Toggle menu">
+      <svg id="icon-menu" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 7.5h16.5M3.75 12h16.5m-16.5 4.5h16.5"/>
+      </svg>
+      <svg id="icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
+  </nav>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="md:hidden bg-white border-t border-stone-100 px-6">
+    <ul class="py-6 flex flex-col gap-5">
+      <li><a href="#works"       class="mobile-nav-link font-sans text-xs tracking-widest2 uppercase text-stone-700 hover:text-stone-900">Works</a></li>
+      <li><a href="#exhibitions" class="mobile-nav-link font-sans text-xs tracking-widest2 uppercase text-stone-700 hover:text-stone-900">Exhibitions</a></li>
+      <li><a href="#about"       class="mobile-nav-link font-sans text-xs tracking-widest2 uppercase text-stone-700 hover:text-stone-900">About</a></li>
+      <li><a href="#contact"     class="mobile-nav-link font-sans text-xs tracking-widest2 uppercase text-stone-700 hover:text-stone-900">Contact</a></li>
+    </ul>
+  </div>
+</header>
+
+
+<!-- ══════════════════════════════════════════
+     HERO — HOME / LANDING
+══════════════════════════════════════════ -->
+<section id="home" class="relative w-full h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
+
+  <!-- Hero background — mosaic texture placeholder -->
+  <div class="absolute inset-0 bg-stone-900">
+    <!-- Mosaic-inspired SVG pattern overlay -->
+    <svg class="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="mosaic" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+          <rect x="1"  y="1"  width="17" height="17" fill="#d6d3d1"/>
+          <rect x="22" y="1"  width="17" height="17" fill="#a8a29e"/>
+          <rect x="1"  y="22" width="17" height="17" fill="#78716c"/>
+          <rect x="22" y="22" width="17" height="17" fill="#e7e5e4"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#mosaic)"/>
+    </svg>
+    <!-- Gradient overlay -->
+    <div class="hero-overlay absolute inset-0"></div>
+  </div>
+
+  <!-- Hero content -->
+  <div class="relative z-10 text-center px-6 max-w-3xl mx-auto">
+    <img src="images/logo/logo2.png" alt="Anica Kitanoska logo" class="w-24 h-24 mx-auto object-contain mb-5 reveal signature-logo-dark" />
+    <p class="font-sans text-xs md:text-sm tracking-widest3 uppercase text-stone-300 mb-6 reveal">
+      Visual Artist · Mosaic &amp; Painting
+    </p>
+    <h1 class="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white font-light leading-none tracking-wide mb-6 reveal">
+      Anica<br/>Kitanoska
+    </h1>
+    <p class="font-serif italic text-stone-300 text-lg md:text-xl font-light reveal">
+      Frozen brushstrokes: the synergy between mosaic and painting
+    </p>
+    <div class="mt-12 reveal">
+      <a href="#works"
+         class="inline-block border border-white/60 text-white text-xs tracking-widest2 uppercase px-8 py-3.5 hover:bg-white hover:text-stone-900 transition-all duration-300">
+        View Works
+      </a>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50">
+    <span class="font-sans text-xs tracking-widest uppercase">Scroll</span>
+    <svg class="w-4 h-6 animate-bounce" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M8 4v12M4 12l4 4 4-4"/>
+    </svg>
+  </div>
+
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     LATEST EXHIBITION BANNER
+══════════════════════════════════════════ -->
+<section class="bg-stone-50 border-t border-b border-stone-200 py-10 px-6">
+  <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 reveal">
+    <div class="text-center sm:text-left">
+      <p class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-1">Latest Exhibition</p>
+      <h2 class="font-serif text-2xl md:text-3xl font-light text-stone-800">Color Power - The Spaces of Colour, Verona — 2025</h2>
+    </div>
+    <a href="#exhibitions"
+       class="shrink-0 border border-stone-800 text-stone-800 text-xs tracking-widest2 uppercase px-8 py-3 hover:bg-stone-800 hover:text-white transition-all duration-300">
+      View Exhibitions
+    </a>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     WORKS / SERIES
+══════════════════════════════════════════ -->
+<section id="works" class="py-24 md:py-32 px-6 bg-white">
+  <div class="max-w-7xl mx-auto">
+
+    <!-- Section heading -->
+    <div class="mb-16 md:mb-20 reveal">
+      <p class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-3">Portfolio</p>
+      <h2 class="font-serif text-4xl md:text-5xl font-light text-stone-800">Selected Works</h2>
+      <p class="font-sans text-sm text-stone-500 mt-3 max-w-2xl">A selection from recent works listed in the exhibition catalog, focused on the dialogue between oil painting and mosaic materiality.</p>
+      <div class="mt-4 w-12 h-px bg-stone-300"></div>
+    </div>
+
+    <!-- Mosaic Series heading -->
+    <div class="mb-10 reveal">
+      <h3 class="font-serif text-2xl md:text-3xl font-light text-stone-700 italic">Mosaic Works</h3>
+    </div>
+
+    <!-- Mosaic grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-20">
+
+      <!-- Card 1 -->
+      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('mosaic-1')">
+        <div class="relative overflow-hidden aspect-square bg-stone-100">
+          <div class="w-full h-full bg-gradient-to-br from-stone-300 via-stone-200 to-stone-400"></div>
+          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-6">
+            <p class="font-serif text-lg italic mb-1">Cibrina</p>
+            <p class="font-sans text-xs tracking-widest uppercase text-stone-300 mb-4">Glass paste on XPS · 2025</p>
+            <span class="border border-white/60 text-xs tracking-widest uppercase px-5 py-2">View Details</span>
+          </div>
+        </div>
+        <div class="pt-4 pb-2">
+          <h4 class="font-serif text-lg font-light">Cibrina</h4>
+          <p class="font-sans text-xs text-stone-400 tracking-wide mt-0.5">Glass paste and pigmented mortar on XPS · 127 x 60 x 5 cm · 2025</p>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('mosaic-2')">
+        <div class="relative overflow-hidden aspect-square bg-stone-100">
+          <div class="w-full h-full bg-gradient-to-tl from-stone-400 via-stone-300 to-stone-200"></div>
+          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-6">
+            <p class="font-serif text-lg italic mb-1">Etherea</p>
+            <p class="font-sans text-xs tracking-widest uppercase text-stone-300 mb-4">Marble &amp; glass paste · 2023</p>
+            <span class="border border-white/60 text-xs tracking-widest uppercase px-5 py-2">View Details</span>
+          </div>
+        </div>
+        <div class="pt-4 pb-2">
+          <h4 class="font-serif text-lg font-light">Etherea</h4>
+          <p class="font-sans text-xs text-stone-400 tracking-wide mt-0.5">Marble, glass paste, pigmented plaster on aerolam · 57.5 x 150.5 cm · 2023</p>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('mosaic-3')">
+        <div class="relative overflow-hidden aspect-square bg-stone-100">
+          <div class="w-full h-full bg-gradient-to-br from-stone-200 via-stone-400 to-stone-300"></div>
+          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-6">
+            <p class="font-serif text-lg italic mb-1">During the Sun</p>
+            <p class="font-sans text-xs tracking-widest uppercase text-stone-300 mb-4">Glass paste on XPS · 2025</p>
+            <span class="border border-white/60 text-xs tracking-widest uppercase px-5 py-2">View Details</span>
+          </div>
+        </div>
+        <div class="pt-4 pb-2">
+          <h4 class="font-serif text-lg font-light">During the Sun</h4>
+          <p class="font-sans text-xs text-stone-400 tracking-wide mt-0.5">Glass paste and pigmented cement on XPS · 40 x 50 cm · 2025</p>
+        </div>
+      </article>
+    </div><!-- /mosaic grid -->
+
+    <!-- Divider -->
+    <div class="border-t border-stone-100 mb-16 reveal"></div>
+
+    <!-- Paintings heading -->
+    <div class="mb-10 reveal">
+      <h3 class="font-serif text-2xl md:text-3xl font-light text-stone-700 italic">Paintings</h3>
+    </div>
+
+    <!-- Paintings grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+
+      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('paint-1')">
+        <div class="relative overflow-hidden aspect-[3/4] bg-stone-100">
+          <div class="w-full h-full bg-gradient-to-b from-stone-200 to-stone-500"></div>
+          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-4">
+            <p class="font-serif text-base italic mb-1">Subconscious</p>
+            <p class="font-sans text-xs tracking-widest uppercase text-stone-300">Oil on canvas · 2025</p>
+          </div>
+        </div>
+        <div class="pt-3 pb-1">
+          <h4 class="font-serif text-base font-light">Subconscious</h4>
+          <p class="font-sans text-xs text-stone-400 mt-0.5">100 x 150 cm · 2025</p>
+        </div>
+      </article>
+
+      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('paint-2')">
+        <div class="relative overflow-hidden aspect-[3/4] bg-stone-100">
+          <div class="w-full h-full bg-gradient-to-t from-stone-300 to-stone-600"></div>
+          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-4">
+            <p class="font-serif text-base italic mb-1">Soul</p>
+            <p class="font-sans text-xs tracking-widest uppercase text-stone-300">Oil on canvas · 2025</p>
+          </div>
+        </div>
+        <div class="pt-3 pb-1">
+          <h4 class="font-serif text-base font-light">Soul</h4>
+          <p class="font-sans text-xs text-stone-400 mt-0.5">120 x 60 cm · 2025</p>
+        </div>
+      </article>
+
+      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('paint-3')">
+        <div class="relative overflow-hidden aspect-[3/4] bg-stone-100">
+          <div class="w-full h-full bg-gradient-to-br from-stone-400 to-stone-200"></div>
+          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-4">
+            <p class="font-serif text-base italic mb-1">Hope</p>
+            <p class="font-sans text-xs tracking-widest uppercase text-stone-300">Oil on canvas · 2023</p>
+          </div>
+        </div>
+        <div class="pt-3 pb-1">
+          <h4 class="font-serif text-base font-light">Hope</h4>
+          <p class="font-sans text-xs text-stone-400 mt-0.5">60 x 60 cm · 2023</p>
+        </div>
+      </article>
+
+      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('paint-4')">
+        <div class="relative overflow-hidden aspect-[3/4] bg-stone-100">
+          <div class="w-full h-full bg-gradient-to-tl from-stone-500 to-stone-300"></div>
+          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-4">
+            <p class="font-serif text-base italic mb-1">Soft Breeze</p>
+            <p class="font-sans text-xs tracking-widest uppercase text-stone-300">Oil on canvas · 2019</p>
+          </div>
+        </div>
+        <div class="pt-3 pb-1">
+          <h4 class="font-serif text-base font-light">Soft Breeze</h4>
+          <p class="font-sans text-xs text-stone-400 mt-0.5">70 x 100 cm · 2019</p>
+        </div>
+      </article>
+    </div><!-- /paintings grid -->
+
+    <!-- Series detail spotlight -->
+    <div class="mt-24 reveal">
+      <div class="border border-stone-200 p-8 md:p-12 bg-stone-50">
+        <p class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-2">Featured Series</p>
+        <h3 class="font-serif text-3xl md:text-4xl font-light text-stone-800 mb-2">Comprehension I-IV</h3>
+        <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-6">Oil on canvas cardboard and glass paste on XPS · 2024</p>
+        <p class="font-serif text-lg md:text-xl font-light text-stone-600 leading-relaxed max-w-2xl mb-8">
+          A dual series where each painted composition is mirrored in mosaic material. The sequence examines how the same gesture shifts when translated from brushwork to tesserae, preserving rhythm while changing texture, weight, and light.
+        </p>
+        <button onclick="openLightbox('mosaic-2')"
+                class="border border-stone-800 text-stone-800 text-xs tracking-widest2 uppercase px-8 py-3 hover:bg-stone-800 hover:text-white transition-all duration-300">
+          View Work Notes →
+        </button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     EXHIBITIONS
+══════════════════════════════════════════ -->
+<section id="exhibitions" class="py-24 md:py-32 px-6 bg-stone-50">
+  <div class="max-w-5xl mx-auto">
+
+    <!-- Section heading -->
+    <div class="mb-16 md:mb-20 reveal">
+      <p class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-3">History</p>
+      <h2 class="font-serif text-4xl md:text-5xl font-light text-stone-800">Exhibitions</h2>
+      <div class="mt-4 w-12 h-px bg-stone-300"></div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-16 md:gap-24">
+
+      <!-- Solo Exhibitions -->
+      <div>
+        <h3 class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-8 reveal">Solo Exhibitions</h3>
+
+        <div class="space-y-0">
+
+          <div class="exh-item py-7 flex gap-6 items-start reveal cursor-pointer group" onclick="openGallery('urania')">
+            <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
+            <div class="flex-1">
+              <h4 class="font-serif text-xl font-light text-stone-800 group-hover:text-stone-500 transition-colors">Frozen Brushstrokes</h4>
+              <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Urania House (MANU), Ohrid, North Macedonia</p>
+            </div>
+            <span class="shrink-0 text-stone-300 group-hover:text-stone-600 transition-colors mt-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="exh-item py-7 flex gap-6 items-start reveal cursor-pointer group" onclick="openGallery('skopje')">
+            <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
+            <div class="flex-1">
+              <h4 class="font-serif text-xl font-light text-stone-800 group-hover:text-stone-500 transition-colors">Frozen Brushstrokes — The Synergy Between Mosaic and Painting</h4>
+              <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Museum of the City of Skopje, North Macedonia</p>
+            </div>
+            <span class="shrink-0 text-stone-300 group-hover:text-stone-600 transition-colors mt-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="exh-item py-7 flex gap-6 items-start reveal cursor-pointer group" onclick="openGallery('bitola')">
+            <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
+            <div class="flex-1">
+              <h4 class="font-serif text-xl font-light text-stone-800 group-hover:text-stone-500 transition-colors">Frozen Brushstrokes — Evolution of Form</h4>
+              <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Magaza Gallery, National Institute and Museum of Bitola, North Macedonia</p>
+            </div>
+            <span class="shrink-0 text-stone-300 group-hover:text-stone-600 transition-colors mt-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="exh-item py-7 flex gap-6 items-start reveal">
+            <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
+            <div class="flex-1">
+              <h4 class="font-serif text-xl font-light text-stone-800">Color Power - The Spaces of Colour</h4>
+              <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Atelier Voglino, Verona, Italy</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Group / Biennale -->
+      <div>
+        <h3 class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-8 reveal">Selected Group Exhibitions</h3>
+
+        <div class="space-y-0">
+
+          <div class="exh-item py-6 flex gap-6 items-start reveal">
+            <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
+            <div class="flex-1">
+              <h4 class="font-serif text-base font-light text-stone-700">GAeM - Young Artists and Mosaic Award</h4>
+              <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Classense Library, IX Biennial of Contemporary Mosaic, Ravenna, Italy</p>
+            </div>
+          </div>
+
+          <div class="exh-item py-6 flex gap-6 items-start reveal">
+            <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
+            <div class="flex-1">
+              <h4 class="font-serif text-base font-light text-stone-700">80 Years of the Osten Biennale</h4>
+              <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Cifte Amam, National Gallery of Macedonia, Skopje</p>
+            </div>
+          </div>
+
+          <div class="exh-item py-6 flex gap-6 items-start reveal">
+            <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2024</span>
+            <div class="flex-1">
+              <h4 class="font-serif text-base font-light text-stone-700">Belgrade Mosaic Festival IV</h4>
+              <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Legata House, Belgrade, Serbia</p>
+            </div>
+          </div>
+
+          <div class="exh-item py-6 flex gap-6 items-start reveal">
+            <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2023</span>
+            <div class="flex-1">
+              <h4 class="font-serif text-base font-light text-stone-700">National Award for Visual Arts, 17th Edition</h4>
+              <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Malaspina Cibo Carrara Palace, Carrara, Italy</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     ABOUT
+══════════════════════════════════════════ -->
+<section id="about" class="py-24 md:py-36 px-6 bg-white">
+  <div class="max-w-3xl mx-auto text-center">
+
+    <p class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-6 reveal">Artist</p>
+    <h2 class="font-serif text-4xl md:text-5xl font-light text-stone-800 mb-12 reveal">About</h2>
+    <div class="mx-auto w-12 h-px bg-stone-300 mb-14 reveal"></div>
+
+    <!-- Biography -->
+    <div class="reveal mb-12">
+      <p class="font-serif text-xl md:text-2xl font-light text-stone-700 leading-relaxed">
+        Anica Kitanoska (b. 23 January 2000, Vevcani, North Macedonia) is a visual artist working between mosaic and painting.
+      </p>
+      <p class="font-sans text-sm text-stone-500 mt-4">
+        BA in Visual Arts and Mosaic (2021), Academy of Fine Arts, Ravenna · MA specialization in Mosaic (2024), Academy of Fine Arts, Ravenna.
+      </p>
+    </div>
+
+    <!-- Awards -->
+    <div class="reveal mb-14 flex flex-wrap justify-center gap-3">
+      <span class="text-xs tracking-wider uppercase border border-stone-200 text-stone-600 px-3 py-1.5">PNA Winner 2023</span>
+      <span class="text-xs tracking-wider uppercase border border-stone-200 text-stone-600 px-3 py-1.5">DLUM First Prize 2024</span>
+      <span class="text-xs tracking-wider uppercase border border-stone-200 text-stone-600 px-3 py-1.5">Chartres Second Prize 2024</span>
+      <span class="text-xs tracking-wider uppercase border border-stone-200 text-stone-600 px-3 py-1.5">Osten Jury Recognition 2024</span>
+    </div>
+
+    <!-- Artist Statement -->
+    <div class="reveal mb-16 text-left md:text-center">
+      <p class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-4">Artist Statement</p>
+      <blockquote class="font-serif text-lg md:text-xl font-light text-stone-700 leading-relaxed italic">
+        My practice unfolds at the intersection of mosaic and painting, where gesture and material act as equal carriers of meaning. The tessera becomes a petrified brushstroke - a fragment of movement embedded in matter, shaping the surface through rhythm, direction and energy.
+      </blockquote>
+      <blockquote class="font-serif text-lg md:text-xl font-light text-stone-700 leading-relaxed italic mt-6">
+        The works emerge as hybrid forms that move beyond the traditional boundaries of painting, sculpture and mosaic. Through layered reliefs of color, cement and light, each stratum introduces a new gesture, texture and spatial tension, allowing time and perception to crystallize within the work.
+      </blockquote>
+    </div>
+
+    <!-- Downloads -->
+    <div class="reveal flex flex-wrap items-center justify-center gap-6 pt-6 border-t border-stone-100">
+      <a href="cv" download class="flex items-center gap-2 font-sans text-xs tracking-widest2 uppercase text-stone-600 hover:text-stone-900 transition-colors group">
+        <svg class="w-4 h-4 text-stone-400 group-hover:text-stone-700 transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+        </svg>
+        Download CV
+      </a>
+      <span class="text-stone-200 hidden sm:inline">|</span>
+      <a href="artist-statement.txt" download class="flex items-center gap-2 font-sans text-xs tracking-widest2 uppercase text-stone-600 hover:text-stone-900 transition-colors group">
+        <svg class="w-4 h-4 text-stone-400 group-hover:text-stone-700 transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+        </svg>
+        Artist Statement
+      </a>
+      <span class="text-stone-200 hidden sm:inline">|</span>
+      <a href="works.txt" download class="flex items-center gap-2 font-sans text-xs tracking-widest2 uppercase text-stone-600 hover:text-stone-900 transition-colors group">
+        <svg class="w-4 h-4 text-stone-400 group-hover:text-stone-700 transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+        </svg>
+        Works List
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     CONTACT
+══════════════════════════════════════════ -->
+<section id="contact" class="py-24 md:py-32 px-6 bg-stone-900">
+  <div class="max-w-xl mx-auto text-center">
+
+    <p class="font-sans text-xs tracking-widest2 uppercase text-stone-500 mb-4 reveal">Get in Touch</p>
+    <h2 class="font-serif text-4xl md:text-5xl font-light text-white mb-14 reveal">Contact</h2>
+
+    <div class="space-y-6 reveal">
+
+      <div>
+        <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Email</p>
+        <a href="mailto:anica_kitanoska@live.com" class="font-serif text-xl text-stone-200 hover:text-white transition-colors">
+          anica_kitanoska@live.com
+        </a>
+      </div>
+
+      <div>
+        <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Alternative Email</p>
+        <a href="mailto:kitanica00@gmail.com" class="font-serif text-lg text-stone-300 hover:text-white transition-colors">
+          kitanica00@gmail.com
+        </a>
+      </div>
+
+      <div class="pt-2">
+        <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Phone</p>
+        <p class="font-serif text-lg text-stone-300 font-light">+389 77 711 374 · +39 327 762 8109</p>
+      </div>
+
+      <div class="pt-2">
+        <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Studio</p>
+        <p class="font-serif text-lg text-stone-300 font-light">Ravenna, Italy</p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer class="bg-stone-900 border-t border-stone-800 py-8 px-6">
+  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <img src="images/logo/logo-sino.png" alt="Anica Kitanoska monogram" class="w-8 h-8 object-contain signature-logo-dark" />
+      <img src="images/logo/logo2.png" alt="Anica Kitanoska logo mark" class="w-8 h-8 object-contain signature-logo-dark" />
+      <span class="font-serif text-stone-500 text-sm tracking-widest uppercase">Anica Kitanoska</span>
+    </div>
+    <p class="font-sans text-xs text-stone-600 text-center">
+      © 2026 Anica Kitanoska. All rights reserved.
+    </p>
+    <nav class="flex gap-5">
+      <a href="#works"       class="font-sans text-xs tracking-wider uppercase text-stone-600 hover:text-stone-400 transition-colors">Works</a>
+      <a href="#exhibitions" class="font-sans text-xs tracking-wider uppercase text-stone-600 hover:text-stone-400 transition-colors">Exhibitions</a>
+      <a href="#contact"     class="font-sans text-xs tracking-wider uppercase text-stone-600 hover:text-stone-400 transition-colors">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+
+<!-- ══════════════════════════════════════════
+     LIGHTBOX MODAL
+══════════════════════════════════════════ -->
+<div id="lightbox"
+     class="fixed inset-0 z-[100] bg-black/92 items-center justify-center p-6 md:p-12"
+     role="dialog" aria-modal="true">
+
+  <button onclick="closeLightbox()"
+          class="absolute top-6 right-6 text-white/85 hover:text-white transition-colors z-10"
+          aria-label="Close">
+    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  </button>
+
+  <div class="max-w-5xl w-full mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+
+    <!-- Main image placeholder -->
+    <div class="aspect-square bg-stone-800 relative overflow-hidden">
+      <svg id="lb-image" class="w-full h-full opacity-50" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="lbm" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+            <rect x="1"  y="1"  width="12" height="12" fill="#a8a29e"/>
+            <rect x="17" y="1"  width="12" height="12" fill="#78716c"/>
+            <rect x="1"  y="17" width="12" height="12" fill="#d6d3d1"/>
+            <rect x="17" y="17" width="12" height="12" fill="#57534e"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#lbm)"/>
+      </svg>
+    </div>
+
+    <!-- Info & detail thumbnails -->
+    <div class="text-white">
+      <p id="lb-series-label" class="font-sans text-xs tracking-widest2 uppercase text-stone-300 mb-2">Mosaic · 2025</p>
+      <h3 id="lb-title" class="font-serif text-3xl md:text-4xl font-light mb-4">Cibrina</h3>
+      <p id="lb-desc" class="font-serif text-stone-100 text-base font-light leading-relaxed mb-8">
+        Selected work details from the catalog. Contact the studio for high-resolution images and installation views.
+      </p>
+
+      <!-- Detail thumbnails -->
+      <div>
+        <p class="font-sans text-xs tracking-widest uppercase text-stone-300 mb-3">Detail Views</p>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="aspect-square bg-stone-700 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden">
+            <svg class="w-full h-full opacity-60" xmlns="http://www.w3.org/2000/svg">
+              <defs><pattern id="d1" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+                <rect x="1" y="1" width="4" height="4" fill="#d6d3d1"/>
+                <rect x="7" y="7" width="4" height="4" fill="#78716c"/>
+              </pattern></defs>
+              <rect width="100%" height="100%" fill="url(#d1)"/>
+            </svg>
+          </div>
+          <div class="aspect-square bg-stone-700 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden">
+            <svg class="w-full h-full opacity-60" xmlns="http://www.w3.org/2000/svg">
+              <defs><pattern id="d2" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                <rect x="1" y="1" width="4" height="4" fill="#a8a29e"/>
+                <rect x="6" y="6" width="3" height="3" fill="#57534e"/>
+              </pattern></defs>
+              <rect width="100%" height="100%" fill="url(#d2)"/>
+            </svg>
+          </div>
+          <div class="aspect-square bg-stone-700 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden">
+            <svg class="w-full h-full opacity-60" xmlns="http://www.w3.org/2000/svg">
+              <defs><pattern id="d3" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+                <rect x="1" y="1" width="5" height="5" fill="#e7e5e4"/>
+                <rect x="8" y="8" width="5" height="5" fill="#44403c"/>
+              </pattern></defs>
+              <rect width="100%" height="100%" fill="url(#d3)"/>
+            </svg>
+          </div>
+        </div>
+        <p class="font-sans text-xs text-stone-300 mt-2">Material, texture, and process detail</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+/* ── Navbar: scroll effect + link color change ── */
+const navbar   = document.getElementById('navbar');
+const navBrand = document.getElementById('nav-brand');
+const navLinks = ['nl-works','nl-exhibitions','nl-about','nl-contact'].map(id => document.getElementById(id));
+
+function updateNav() {
+  const scrolled = window.scrollY > 60;
+  navbar.classList.toggle('scrolled', scrolled);
+  const color = scrolled ? '#292524' : '#ffffff';
+  navBrand.style.color = color;
+  navLinks.forEach(l => { if(l) l.style.color = color; });
+}
+window.addEventListener('scroll', updateNav, { passive: true });
+updateNav();
+
+/* ── Mobile menu toggle ── */
+const menuBtn   = document.getElementById('menu-btn');
+const mobileMenu = document.getElementById('mobile-menu');
+const iconMenu  = document.getElementById('icon-menu');
+const iconClose = document.getElementById('icon-close');
+
+menuBtn.addEventListener('click', () => {
+  const open = mobileMenu.classList.toggle('open');
+  iconMenu.classList.toggle('hidden', open);
+  iconClose.classList.toggle('hidden', !open);
+  // On mobile menu open, force dark nav text
+  navBrand.style.color = '#292524';
+  navLinks.forEach(l => { if(l) l.style.color = '#292524'; });
+});
+
+// Close mobile menu when a link is clicked
+document.querySelectorAll('.mobile-nav-link').forEach(link => {
+  link.addEventListener('click', () => {
+    mobileMenu.classList.remove('open');
+    iconMenu.classList.remove('hidden');
+    iconClose.classList.add('hidden');
+    updateNav();
+  });
+});
+
+/* ── Scroll reveal ── */
+const reveals = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+reveals.forEach(el => revealObserver.observe(el));
+
+/* ── Lightbox ── */
+const lightboxData = {
+  'mosaic-1': { title: 'Cibrina', label: 'Glass paste and pigmented mortar on XPS · 127 x 60 x 5 cm · 2025', desc: 'A large-format vertical mosaic where weight and movement coexist through layered mortar and glass paste. The work extends painting gesture into sculptural depth.' },
+  'mosaic-2': { title: 'Etherea', label: 'Marble, glass paste, pigmented plaster on aerolam · 57.5 x 150.5 cm · 2023', desc: 'A hybrid relief balancing marble and translucent tesserae. Light shifts across the surface as a temporal element in the composition.' },
+  'mosaic-3': { title: 'During the Sun', label: 'Glass paste, pigmented cement on XPS · 40 x 50 cm · 2025', desc: 'A study of solar rhythm and directional force, using compressed chromatic fields and tactile fragmentation.' },
+  'paint-1': { title: 'Subconscious', label: 'Oil on canvas · 100 x 150 cm · 2025', desc: 'A broad painterly field where subconscious movement is retained in layered brushwork, later echoed in mosaic translations.' },
+  'paint-2': { title: 'Soul', label: 'Oil on canvas · 120 x 60 cm · 2025', desc: 'A vertical composition centered on emotional resonance and structural restraint.' },
+  'paint-3': { title: 'Hope', label: 'Oil on canvas · 60 x 60 cm · 2023', desc: 'A compact format exploring balance, stillness, and chromatic concentration.' },
+  'paint-4': { title: 'Soft Breeze', label: 'Oil on canvas · 70 x 100 cm · 2019', desc: 'An early work from the archive, already introducing movement as a central compositional force.' },
+};
+
+function openLightbox(key) {
+  const d = lightboxData[key];
+  if (!d) return;
+  document.getElementById('lb-title').textContent        = d.title;
+  document.getElementById('lb-series-label').textContent = d.label;
+  document.getElementById('lb-desc').textContent         = d.desc;
+  const lb = document.getElementById('lightbox');
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close lightbox on backdrop click
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+// Close on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+/* ── Exhibition gallery opener (placeholder) ── */
+function openGallery(venue) {
+  const titles = {
+    urania: { t: 'Frozen Brushstrokes', l: 'Urania House (MANU), Ohrid · 2025', d: 'Solo exhibition curated by Stefan Aleksandar Jovanovski, presented in collaboration with the Macedonian Academy of Sciences and Arts.' },
+    skopje: { t: 'Frozen Brushstrokes — The Synergy Between Mosaic and Painting', l: 'Museum of the City of Skopje · 2025', d: 'Supported by the Ministry of Culture of North Macedonia and curated by Gordana Velkov.' },
+    bitola: { t: 'Frozen Brushstrokes — Evolution of Form', l: 'Magaza Gallery, Bitola · 2025', d: 'Presented in collaboration with DLUM and the National Institute and Museum of Bitola.' },
+  };
+  const d = titles[venue];
+  if (!d) return;
+  lightboxData[venue] = { title: d.t, label: d.l, desc: d.d };
+  openLightbox(venue);
+}
+</script>
+
+</body>
+</html>
+

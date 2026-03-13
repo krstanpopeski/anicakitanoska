@@ -1,0 +1,11 @@
+# Ignore everything by default
+*
+
+# Keep this file tracked
+!.gitignore
+
+# Only publish these files
+!index.html
+!Logo sino.png
+!logo 2.png
+
