@@ -51,6 +51,13 @@
     #navbar.scrolled { background: rgba(255,255,255,0.97); box-shadow: 0 1px 24px rgba(0,0,0,0.06); }
 
     /* ── Hero overlay gradient ── */
+    .hero-bg {
+      background-image: url('https://res.cloudinary.com/dwoaffehr/image/upload/v1773416020/main-image_1_zklxcz.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: #ffffff; /* light fallback while image loads */
+    }
     .hero-overlay {
       background: linear-gradient(to bottom,
         rgba(0,0,0,0.25) 0%,
@@ -103,6 +110,139 @@
     #lightbox .text-stone-500 { color: #d6d3d1 !important; }
     #lightbox .text-stone-400 { color: #e7e5e4 !important; }
     #lightbox .text-stone-300 { color: #f5f5f4 !important; }
+
+    /* ── Mosaic work modal ── */
+    #mosaic-modal { display: none; }
+    #mosaic-modal.open { display: flex; }
+
+    /* On mobile the inner layout scrolls vertically */
+    #mosaic-modal-inner {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #mosaic-modal .thumb-strip {
+      display: flex;
+      flex-direction: row;   /* horizontal row on mobile */
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      max-width: 100%;
+      scrollbar-width: thin;
+      scrollbar-color: #44403c transparent;
+      padding-bottom: 4px;
+    }
+    #mosaic-modal .thumb-strip::-webkit-scrollbar { height: 4px; }
+    #mosaic-modal .thumb-strip::-webkit-scrollbar-thumb { background: #44403c; border-radius: 2px; }
+
+    /* On md+ switch to vertical column */
+    @media (min-width: 768px) {
+      #mosaic-modal .thumb-strip {
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+        max-height: 100%;
+        padding-bottom: 0;
+      }
+      #mosaic-modal .thumb-strip::-webkit-scrollbar { width: 4px; height: auto; }
+    }
+
+    #mosaic-modal .thumb-item {
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+      cursor: pointer;
+      opacity: 0.55;
+      border: 2px solid transparent;
+      transition: opacity 0.2s, border-color 0.2s;
+      overflow: hidden;
+    }
+    @media (min-width: 768px) {
+      #mosaic-modal .thumb-item { width: 80px; height: 80px; }
+    }
+    #mosaic-modal .thumb-item:hover { opacity: 0.85; }
+    #mosaic-modal .thumb-item.active { opacity: 1; border-color: #ffffff; }
+
+    #mosaic-modal .thumb-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ── Zoom overlay ── */
+    #zoom-overlay { display: none; }
+    #zoom-overlay.open { display: flex; }
+
+    #zoom-overlay img {
+      max-width: 90vw;
+      max-height: 90vh;
+      object-fit: contain;
+      cursor: zoom-out;
+      transition: transform 0.25s ease;
+      transform-origin: center center;
+      touch-action: pinch-zoom;
+    }
+    #zoom-overlay img.zoomed { transform: scale(2); cursor: zoom-out; }
+    #zoom-hint { display: none; }
+    @media (min-width: 640px) { #zoom-hint { display: block; } }
+
+    /* ── Skeleton shimmer ── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position:  600px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.4s infinite linear;
+    }
+
+    /* main image wrapper: skeleton sits behind, image fades in on top */
+    #mosaic-main-wrap {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #mosaic-main-skeleton {
+      position: absolute;
+      inset: 0;
+      border-radius: 2px;
+      transition: opacity 0.3s;
+      min-height: 200px;
+    }
+    #mosaic-modal-main {
+      position: relative;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      display: block;
+      max-width: 100%;
+      max-height: 45vw;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+    @media (min-width: 768px) {
+      #mosaic-modal-main { max-height: 78vh; }
+    }
+    #mosaic-modal-main.loaded {
+      opacity: 1;
+    }
+
+    /* thumb skeleton */
+    .thumb-item .thumb-skeleton {
+      position: absolute;
+      inset: 0;
+      transition: opacity 0.3s;
+    }
+    .thumb-item { position: relative; }
+    .thumb-item img {
+      position: relative;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .thumb-item img.loaded { opacity: 1; }
   </style>
 </head>
 <body class="bg-white font-sans text-stone-800 antialiased">
@@ -157,17 +297,9 @@
 <section id="home" class="relative w-full h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
 
   <!-- Hero background — mosaic texture placeholder -->
-  <div class="absolute inset-0 bg-stone-900">
+  <div class="hero-bg absolute inset-0">
     <!-- Mosaic-inspired SVG pattern overlay -->
     <svg class="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="mosaic" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-          <rect x="1"  y="1"  width="17" height="17" fill="#d6d3d1"/>
-          <rect x="22" y="1"  width="17" height="17" fill="#a8a29e"/>
-          <rect x="1"  y="22" width="17" height="17" fill="#78716c"/>
-          <rect x="22" y="22" width="17" height="17" fill="#e7e5e4"/>
-        </pattern>
-      </defs>
       <rect width="100%" height="100%" fill="url(#mosaic)"/>
     </svg>
     <!-- Gradient overlay -->
@@ -241,57 +373,8 @@
       <h3 class="font-serif text-2xl md:text-3xl font-light text-stone-700 italic">Mosaic Works</h3>
     </div>
 
-    <!-- Mosaic grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-20">
-
-      <!-- Card 1 -->
-      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('mosaic-1')">
-        <div class="relative overflow-hidden aspect-square bg-stone-100">
-          <div class="w-full h-full bg-gradient-to-br from-stone-300 via-stone-200 to-stone-400"></div>
-          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-6">
-            <p class="font-serif text-lg italic mb-1">Cibrina</p>
-            <p class="font-sans text-xs tracking-widest uppercase text-stone-300 mb-4">Glass paste on XPS · 2025</p>
-            <span class="border border-white/60 text-xs tracking-widest uppercase px-5 py-2">View Details</span>
-          </div>
-        </div>
-        <div class="pt-4 pb-2">
-          <h4 class="font-serif text-lg font-light">Cibrina</h4>
-          <p class="font-sans text-xs text-stone-400 tracking-wide mt-0.5">Glass paste and pigmented mortar on XPS · 127 x 60 x 5 cm · 2025</p>
-        </div>
-      </article>
-
-      <!-- Card 2 -->
-      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('mosaic-2')">
-        <div class="relative overflow-hidden aspect-square bg-stone-100">
-          <div class="w-full h-full bg-gradient-to-tl from-stone-400 via-stone-300 to-stone-200"></div>
-          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-6">
-            <p class="font-serif text-lg italic mb-1">Etherea</p>
-            <p class="font-sans text-xs tracking-widest uppercase text-stone-300 mb-4">Marble &amp; glass paste · 2023</p>
-            <span class="border border-white/60 text-xs tracking-widest uppercase px-5 py-2">View Details</span>
-          </div>
-        </div>
-        <div class="pt-4 pb-2">
-          <h4 class="font-serif text-lg font-light">Etherea</h4>
-          <p class="font-sans text-xs text-stone-400 tracking-wide mt-0.5">Marble, glass paste, pigmented plaster on aerolam · 57.5 x 150.5 cm · 2023</p>
-        </div>
-      </article>
-
-      <!-- Card 3 -->
-      <article class="work-card group cursor-pointer reveal" onclick="openLightbox('mosaic-3')">
-        <div class="relative overflow-hidden aspect-square bg-stone-100">
-          <div class="w-full h-full bg-gradient-to-br from-stone-200 via-stone-400 to-stone-300"></div>
-          <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-6">
-            <p class="font-serif text-lg italic mb-1">During the Sun</p>
-            <p class="font-sans text-xs tracking-widest uppercase text-stone-300 mb-4">Glass paste on XPS · 2025</p>
-            <span class="border border-white/60 text-xs tracking-widest uppercase px-5 py-2">View Details</span>
-          </div>
-        </div>
-        <div class="pt-4 pb-2">
-          <h4 class="font-serif text-lg font-light">During the Sun</h4>
-          <p class="font-sans text-xs text-stone-400 tracking-wide mt-0.5">Glass paste and pigmented cement on XPS · 40 x 50 cm · 2025</p>
-        </div>
-      </article>
-    </div><!-- /mosaic grid -->
+    <!-- Mosaic grid — populated by JS from mosaicWorks array -->
+    <div id="mosaic-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-20"></div><!-- /mosaic grid -->
 
     <!-- Divider -->
     <div class="border-t border-stone-100 mb-16 reveal"></div>
@@ -363,15 +446,15 @@
 
     <!-- Series detail spotlight -->
     <div class="mt-24 reveal">
-      <div class="border border-stone-200 p-8 md:p-12 bg-stone-50">
+      <div class="border border-stone-200 p-6 sm:p-8 md:p-12 bg-stone-50">
         <p class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-2">Featured Series</p>
-        <h3 class="font-serif text-3xl md:text-4xl font-light text-stone-800 mb-2">Comprehension I-IV</h3>
+        <h3 class="font-serif text-2xl sm:text-3xl md:text-4xl font-light text-stone-800 mb-2">Comprehension I-IV</h3>
         <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-6">Oil on canvas cardboard and glass paste on XPS · 2024</p>
-        <p class="font-serif text-lg md:text-xl font-light text-stone-600 leading-relaxed max-w-2xl mb-8">
+        <p class="font-serif text-base sm:text-lg md:text-xl font-light text-stone-600 leading-relaxed max-w-2xl mb-8">
           A dual series where each painted composition is mirrored in mosaic material. The sequence examines how the same gesture shifts when translated from brushwork to tesserae, preserving rhythm while changing texture, weight, and light.
         </p>
-        <button onclick="openLightbox('mosaic-2')"
-                class="border border-stone-800 text-stone-800 text-xs tracking-widest2 uppercase px-8 py-3 hover:bg-stone-800 hover:text-white transition-all duration-300">
+        <button onclick="openMosaicModal(0)"
+                class="border border-stone-800 text-stone-800 text-xs tracking-widest2 uppercase px-6 sm:px-8 py-3 hover:bg-stone-800 hover:text-white transition-all duration-300">
           View Work Notes →
         </button>
       </div>
@@ -405,7 +488,7 @@
           <div class="exh-item py-7 flex gap-6 items-start reveal cursor-pointer group" onclick="openGallery('urania')">
             <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
             <div class="flex-1">
-              <h4 class="font-serif text-xl font-light text-stone-800 group-hover:text-stone-500 transition-colors">Frozen Brushstrokes</h4>
+              <h4 class="font-serif text-base sm:text-xl font-light text-stone-800 group-hover:text-stone-500 transition-colors">Frozen Brushstrokes</h4>
               <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Urania House (MANU), Ohrid, North Macedonia</p>
             </div>
             <span class="shrink-0 text-stone-300 group-hover:text-stone-600 transition-colors mt-1">
@@ -418,7 +501,7 @@
           <div class="exh-item py-7 flex gap-6 items-start reveal cursor-pointer group" onclick="openGallery('skopje')">
             <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
             <div class="flex-1">
-              <h4 class="font-serif text-xl font-light text-stone-800 group-hover:text-stone-500 transition-colors">Frozen Brushstrokes — The Synergy Between Mosaic and Painting</h4>
+              <h4 class="font-serif text-base sm:text-xl font-light text-stone-800 group-hover:text-stone-500 transition-colors">Frozen Brushstrokes — The Synergy Between Mosaic and Painting</h4>
               <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Museum of the City of Skopje, North Macedonia</p>
             </div>
             <span class="shrink-0 text-stone-300 group-hover:text-stone-600 transition-colors mt-1">
@@ -431,7 +514,7 @@
           <div class="exh-item py-7 flex gap-6 items-start reveal cursor-pointer group" onclick="openGallery('bitola')">
             <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
             <div class="flex-1">
-              <h4 class="font-serif text-xl font-light text-stone-800 group-hover:text-stone-500 transition-colors">Frozen Brushstrokes — Evolution of Form</h4>
+              <h4 class="font-serif text-base sm:text-xl font-light text-stone-800 group-hover:text-stone-500 transition-colors">Frozen Brushstrokes — Evolution of Form</h4>
               <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Magaza Gallery, National Institute and Museum of Bitola, North Macedonia</p>
             </div>
             <span class="shrink-0 text-stone-300 group-hover:text-stone-600 transition-colors mt-1">
@@ -444,7 +527,7 @@
           <div class="exh-item py-7 flex gap-6 items-start reveal">
             <span class="font-serif text-stone-400 text-sm font-light w-10 shrink-0 pt-0.5">2025</span>
             <div class="flex-1">
-              <h4 class="font-serif text-xl font-light text-stone-800">Color Power - The Spaces of Colour</h4>
+              <h4 class="font-serif text-base sm:text-xl font-light text-stone-800">Color Power - The Spaces of Colour</h4>
               <p class="font-sans text-xs text-stone-400 tracking-wide mt-1">Atelier Voglino, Verona, Italy</p>
             </div>
           </div>
@@ -591,7 +674,7 @@
 
       <div class="pt-2">
         <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Phone</p>
-        <p class="font-serif text-lg text-stone-300 font-light">+389 77 711 374 · +39 327 762 8109</p>
+        <p class="font-serif text-base sm:text-lg text-stone-300 font-light break-all sm:break-normal">+389 77 711 374 · +39 327 762 8109</p>
       </div>
 
       <div class="pt-2">
@@ -609,22 +692,94 @@
      FOOTER
 ══════════════════════════════════════════ -->
 <footer class="bg-stone-900 border-t border-stone-800 py-8 px-6">
-  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
     <div class="flex items-center gap-3">
       <img src="images/logo/logo-sino.png" alt="Anica Kitanoska monogram" class="w-8 h-8 object-contain signature-logo-dark" />
       <img src="images/logo/logo2.png" alt="Anica Kitanoska logo mark" class="w-8 h-8 object-contain signature-logo-dark" />
       <span class="font-serif text-stone-500 text-sm tracking-widest uppercase">Anica Kitanoska</span>
     </div>
-    <p class="font-sans text-xs text-stone-600 text-center">
+    <p class="font-sans text-xs text-stone-600">
       © 2026 Anica Kitanoska. All rights reserved.
     </p>
-    <nav class="flex gap-5">
+    <nav class="flex flex-wrap justify-center gap-5">
       <a href="#works"       class="font-sans text-xs tracking-wider uppercase text-stone-600 hover:text-stone-400 transition-colors">Works</a>
       <a href="#exhibitions" class="font-sans text-xs tracking-wider uppercase text-stone-600 hover:text-stone-400 transition-colors">Exhibitions</a>
       <a href="#contact"     class="font-sans text-xs tracking-wider uppercase text-stone-600 hover:text-stone-400 transition-colors">Contact</a>
     </nav>
   </div>
 </footer>
+
+
+<!-- ══════════════════════════════════════════
+     MOSAIC DETAIL MODAL
+══════════════════════════════════════════ -->
+<div id="mosaic-modal"
+     class="fixed inset-0 z-[110] bg-black/95 items-center justify-center p-4 md:p-10"
+     role="dialog" aria-modal="true">
+
+  <!-- Close button -->
+  <button onclick="closeMosaicModal()"
+          class="absolute top-5 right-5 text-white/80 hover:text-white transition-colors z-10"
+          aria-label="Close">
+    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  </button>
+
+  <div id="mosaic-modal-inner" class="max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-4 md:gap-8 max-h-[92vh] md:max-h-[88vh]">
+
+    <!-- Main image -->
+    <div class="flex-1 flex items-center justify-center min-h-0 overflow-hidden">
+      <div id="mosaic-main-wrap" class="relative w-full h-full flex items-center justify-center">
+        <div id="mosaic-main-skeleton" class="skeleton w-full h-full" style="min-height:180px;"></div>
+        <img id="mosaic-modal-main"
+             src="" alt=""
+             class="cursor-zoom-in select-none"
+             onclick="openZoom(this.src)" />
+      </div>
+    </div>
+
+    <!-- Right panel: info + thumbnail strip -->
+    <div class="md:w-64 lg:w-72 flex flex-col gap-4 md:gap-6 shrink-0 overflow-hidden">
+
+      <!-- Info -->
+      <div class="text-white">
+        <p id="mosaic-modal-label" class="font-sans text-xs tracking-widest2 uppercase text-stone-400 mb-1 break-words"></p>
+        <h3 id="mosaic-modal-title" class="font-serif text-xl md:text-3xl font-light leading-tight"></h3>
+        <p id="mosaic-modal-desc"  class="font-sans text-xs text-stone-400 leading-relaxed mt-3 hidden md:block"></p>
+      </div>
+
+      <!-- Thumbnail strip -->
+      <div class="thumb-strip shrink-0 md:flex-1">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     ZOOM OVERLAY
+══════════════════════════════════════════ -->
+<div id="zoom-overlay"
+     class="fixed inset-0 z-[120] bg-black/98 items-center justify-center"
+     role="dialog" aria-modal="true">
+
+  <!-- Close button -->
+  <button onclick="closeZoom()"
+          class="absolute top-5 right-5 text-white/70 hover:text-white transition-colors z-10"
+          aria-label="Close zoom">
+    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  </button>
+
+  <!-- Zoom hint -->
+  <p id="zoom-hint" class="absolute bottom-5 left-1/2 -translate-x-1/2 font-sans text-xs tracking-widest uppercase text-white/40 pointer-events-none">Click to zoom · Scroll to zoom · Click again to reset</p>
+
+  <img id="zoom-img" src="" alt="" />
+</div>
 
 
 <!-- ══════════════════════════════════════════
@@ -711,6 +866,218 @@
      JAVASCRIPT
 ══════════════════════════════════════════ -->
 <script>
+/* ════════════════════════════════════════════
+   MOSAIC WORKS DATA
+   — Add more objects here to populate the grid.
+   — First image is used as the grid thumbnail.
+   ════════════════════════════════════════════ */
+const mosaicWorks = [
+  {
+    name:  'Cibrina',
+    label: 'Glass paste and pigmented mortar on XPS · 127 × 60 × 5 cm · 2025',
+    desc:  'A large-format vertical mosaic where weight and movement coexist through layered mortar and glass paste. The work extends painting gesture into sculptural depth.',
+    images: [
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476101/Cibrina_glass_paste_and_pigmented_mortar_on_XPS_127x60x5_cm_2025_y2mc9m.png',
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476111/DSC_2263_v5ex7c.jpg',
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476110/DSC_2262_jdmyjf.jpg',
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476112/DSC_2268_ebm0uc.jpg',
+    ],
+  },
+  {
+    name:  'Eterea',
+    label: 'Marble, glass paste, pigmented plaster on aerolam · 57.5 × 150.5 cm · 2023',
+    desc:  'A vertical relief balancing the coolness of marble with the translucency of glass paste. Light shifts across the layered surface, introducing a temporal dimension into the composition.',
+    images: [
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476624/%D0%95%D1%82%D0%B5%D1%80ea_%D0%BC%D0%B5%D1%80%D0%BC%D0%B5%D1%80_%D1%81%D1%82%D0%B0%D0%BA%D0%BB%D0%B5%D0%BD%D0%B0_%D0%BF%D0%B0%D1%81%D1%82%D0%B0_%D0%BF%D0%B8%D0%B3%D0%BC%D0%B5%D0%BD%D1%82%D0%B8%D1%80%D0%B0%D0%BD_%D0%BC%D0%B0%D0%BB%D1%82%D0%B5%D1%80_%D0%BD%D0%B0_%D0%B0%D0%B5%D1%80%D0%BE%D0%BB%D0%B0%D0%BC_57_5_x150_5_cm_2023_%D0%B3_Etherea_marble_glass_paste_pigmented_plaster_on_aerolam_57.5_x_150.5_cm_2023-2_ug2xil.png',
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476415/DSC_5838_qpwntj.jpg',
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476408/DETAGLIO_2_n5r0k4.jpg',
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476400/DETAGLIO_1_sumrh9.jpg',
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476395/DSC_5853_i8aorn.jpg',
+    ],
+  },
+  {
+    name:  'During the Sun',
+    label: 'Glass paste and pigmented cement on XPS · 40 × 50 cm · 2025',
+    desc:  'A study of solar rhythm and directional force. Compressed chromatic fields and tactile fragmentation capture the intensity of light at its peak.',
+    images: [
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476791/During_the_Sun_glass_paste_pigmented_cement_on_XPS_40_x_50_cm_2025_mvmxzu.png',
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476786/DSC_2425_u5utzx.jpg',
+      'https://res.cloudinary.com/dwoaffehr/image/upload/v1773476776/DSC_2424_anq40m.jpg',
+    ],
+  },
+  // Add more mosaic works here…
+];
+
+/* ── Render mosaic grid — called after revealObserver is defined below ── */
+function renderMosaicGrid() {
+  const grid = document.getElementById('mosaic-grid');
+  if (!grid) return;
+
+  mosaicWorks.forEach((work, idx) => {
+    const thumb = work.images[0];
+    const article = document.createElement('article');
+    article.className = 'work-card group cursor-pointer reveal';
+    article.innerHTML = `
+      <div class="relative overflow-hidden aspect-square bg-stone-100">
+        <img src="${thumb}" alt="${work.name}"
+             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <div class="overlay absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-6">
+          <p class="font-serif text-lg italic mb-1">${work.name}</p>
+          <p class="font-sans text-xs tracking-widest uppercase text-stone-300 mb-4">${work.label}</p>
+          <span class="border border-white/60 text-xs tracking-widest uppercase px-5 py-2">View Details</span>
+        </div>
+      </div>
+      <div class="pt-4 pb-2">
+        <h4 class="font-serif text-lg font-light">${work.name}</h4>
+        <p class="font-sans text-xs text-stone-400 tracking-wide mt-0.5">${work.label}</p>
+      </div>
+    `;
+    article.addEventListener('click', () => openMosaicModal(idx));
+    grid.appendChild(article);
+  });
+
+  // Observe newly added reveal elements (revealObserver is defined below)
+  document.querySelectorAll('#mosaic-grid .reveal').forEach(el => revealObserver.observe(el));
+}
+
+
+/* ── Mosaic modal ── */
+let currentMosaicIdx = 0;
+
+function openMosaicModal(workIdx) {
+  const work = mosaicWorks[workIdx];
+  if (!work) return;
+  currentMosaicIdx = workIdx;
+
+  document.getElementById('mosaic-modal-title').textContent = work.name;
+  document.getElementById('mosaic-modal-label').textContent = work.label;
+  document.getElementById('mosaic-modal-desc').textContent  = work.desc;
+
+  // Set main image to first
+  setMosaicMainImage(0);
+
+  // Build thumbnail strip
+  const strip = document.querySelector('#mosaic-modal .thumb-strip');
+  strip.innerHTML = '';
+  work.images.forEach((src, i) => {
+    const div = document.createElement('div');
+    div.className = 'thumb-item' + (i === 0 ? ' active' : '');
+    div.dataset.index = i;
+    div.innerHTML = `
+      <div class="thumb-skeleton skeleton" style="position:absolute;inset:0;"></div>
+      <img src="${src}" alt="${work.name} — image ${i + 1}" loading="lazy" />
+    `;
+    const img = div.querySelector('img');
+    const sk  = div.querySelector('.thumb-skeleton');
+    const onLoad = () => { sk.style.opacity = '0'; img.classList.add('loaded'); };
+    img.addEventListener('load',  onLoad);
+    img.addEventListener('error', onLoad);
+    div.addEventListener('click', () => {
+      setMosaicMainImage(i);
+      strip.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+      div.classList.add('active');
+    });
+    strip.appendChild(div);
+  });
+
+  document.getElementById('mosaic-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function setMosaicMainImage(imgIdx) {
+  const work = mosaicWorks[currentMosaicIdx];
+  const main = document.getElementById('mosaic-modal-main');
+  const skeleton = document.getElementById('mosaic-main-skeleton');
+
+  // Reset: hide image, show skeleton
+  main.classList.remove('loaded');
+  skeleton.style.opacity = '1';
+
+  main.onload = function() {
+    skeleton.style.opacity = '0';
+    main.classList.add('loaded');
+  };
+  main.onerror = function() {
+    skeleton.style.opacity = '0';
+    main.classList.add('loaded');
+  };
+
+  main.src = work.images[imgIdx];
+  main.alt = `${work.name} — image ${imgIdx + 1}`;
+}
+
+function closeMosaicModal() {
+  document.getElementById('mosaic-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close on backdrop click
+document.getElementById('mosaic-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeMosaicModal();
+});
+
+
+/* ── Zoom overlay ── */
+let zoomScale = 1;
+const ZOOM_MIN = 1, ZOOM_MAX = 4, ZOOM_STEP = 0.35;
+
+function openZoom(src) {
+  const img = document.getElementById('zoom-img');
+  img.src = src;
+  img.classList.remove('zoomed');
+  zoomScale = 1;
+  img.style.transform = 'scale(1)';
+  document.getElementById('zoom-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeZoom() {
+  document.getElementById('zoom-overlay').classList.remove('open');
+  // Restore mosaic modal scroll lock if it was open
+  if (document.getElementById('mosaic-modal').classList.contains('open')) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+}
+
+// Click to toggle zoom
+document.getElementById('zoom-img').addEventListener('click', function() {
+  if (zoomScale > 1) {
+    zoomScale = 1;
+    this.style.transform = 'scale(1)';
+    this.classList.remove('zoomed');
+  } else {
+    zoomScale = 2;
+    this.style.transform = 'scale(2)';
+    this.classList.add('zoomed');
+  }
+});
+
+// Scroll / pinch to zoom
+document.getElementById('zoom-overlay').addEventListener('wheel', function(e) {
+  e.preventDefault();
+  const img = document.getElementById('zoom-img');
+  zoomScale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomScale - e.deltaY * 0.001 * ZOOM_STEP * 40));
+  img.style.transform = `scale(${zoomScale})`;
+  img.classList.toggle('zoomed', zoomScale > 1);
+}, { passive: false });
+
+// Close zoom on backdrop click
+document.getElementById('zoom-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeZoom();
+});
+
+// Escape key closes zoom first, then mosaic modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('zoom-overlay').classList.contains('open')) { closeZoom(); return; }
+    if (document.getElementById('mosaic-modal').classList.contains('open')) { closeMosaicModal(); return; }
+    closeLightbox();
+  }
+});
+
+
 /* ── Navbar: scroll effect + link color change ── */
 const navbar   = document.getElementById('navbar');
 const navBrand = document.getElementById('nav-brand');
@@ -736,12 +1103,10 @@ menuBtn.addEventListener('click', () => {
   const open = mobileMenu.classList.toggle('open');
   iconMenu.classList.toggle('hidden', open);
   iconClose.classList.toggle('hidden', !open);
-  // On mobile menu open, force dark nav text
   navBrand.style.color = '#292524';
   navLinks.forEach(l => { if(l) l.style.color = '#292524'; });
 });
 
-// Close mobile menu when a link is clicked
 document.querySelectorAll('.mobile-nav-link').forEach(link => {
   link.addEventListener('click', () => {
     mobileMenu.classList.remove('open');
@@ -763,15 +1128,15 @@ const revealObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 reveals.forEach(el => revealObserver.observe(el));
 
-/* ── Lightbox ── */
+/* ── Populate mosaic grid (needs revealObserver, so called here) ── */
+renderMosaicGrid();
+
+/* ── Lightbox (paintings) ── */
 const lightboxData = {
-  'mosaic-1': { title: 'Cibrina', label: 'Glass paste and pigmented mortar on XPS · 127 x 60 x 5 cm · 2025', desc: 'A large-format vertical mosaic where weight and movement coexist through layered mortar and glass paste. The work extends painting gesture into sculptural depth.' },
-  'mosaic-2': { title: 'Etherea', label: 'Marble, glass paste, pigmented plaster on aerolam · 57.5 x 150.5 cm · 2023', desc: 'A hybrid relief balancing marble and translucent tesserae. Light shifts across the surface as a temporal element in the composition.' },
-  'mosaic-3': { title: 'During the Sun', label: 'Glass paste, pigmented cement on XPS · 40 x 50 cm · 2025', desc: 'A study of solar rhythm and directional force, using compressed chromatic fields and tactile fragmentation.' },
   'paint-1': { title: 'Subconscious', label: 'Oil on canvas · 100 x 150 cm · 2025', desc: 'A broad painterly field where subconscious movement is retained in layered brushwork, later echoed in mosaic translations.' },
-  'paint-2': { title: 'Soul', label: 'Oil on canvas · 120 x 60 cm · 2025', desc: 'A vertical composition centered on emotional resonance and structural restraint.' },
-  'paint-3': { title: 'Hope', label: 'Oil on canvas · 60 x 60 cm · 2023', desc: 'A compact format exploring balance, stillness, and chromatic concentration.' },
-  'paint-4': { title: 'Soft Breeze', label: 'Oil on canvas · 70 x 100 cm · 2019', desc: 'An early work from the archive, already introducing movement as a central compositional force.' },
+  'paint-2': { title: 'Soul',         label: 'Oil on canvas · 120 x 60 cm · 2025',  desc: 'A vertical composition centered on emotional resonance and structural restraint.' },
+  'paint-3': { title: 'Hope',         label: 'Oil on canvas · 60 x 60 cm · 2023',   desc: 'A compact format exploring balance, stillness, and chromatic concentration.' },
+  'paint-4': { title: 'Soft Breeze',  label: 'Oil on canvas · 70 x 100 cm · 2019',  desc: 'An early work from the archive, already introducing movement as a central compositional force.' },
 };
 
 function openLightbox(key) {
@@ -780,8 +1145,7 @@ function openLightbox(key) {
   document.getElementById('lb-title').textContent        = d.title;
   document.getElementById('lb-series-label').textContent = d.label;
   document.getElementById('lb-desc').textContent         = d.desc;
-  const lb = document.getElementById('lightbox');
-  lb.classList.add('open');
+  document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
@@ -790,15 +1154,11 @@ function closeLightbox() {
   document.body.style.overflow = '';
 }
 
-// Close lightbox on backdrop click
 document.getElementById('lightbox').addEventListener('click', function(e) {
   if (e.target === this) closeLightbox();
 });
 
-// Close on Escape
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
-
-/* ── Exhibition gallery opener (placeholder) ── */
+/* ── Exhibition gallery opener ── */
 function openGallery(venue) {
   const titles = {
     urania: { t: 'Frozen Brushstrokes', l: 'Urania House (MANU), Ohrid · 2025', d: 'Solo exhibition curated by Stefan Aleksandar Jovanovski, presented in collaboration with the Macedonian Academy of Sciences and Arts.' },
